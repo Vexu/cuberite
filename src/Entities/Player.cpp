@@ -19,6 +19,7 @@
 #include "../Items/ItemHandler.h"
 #include "../FastRandom.h"
 #include "../ClientHandle.h"
+#include "../GameRules.h"
 
 #include "../WorldStorage/StatSerializer.h"
 #include "../CompositeChat.h"
@@ -1092,8 +1093,12 @@ void cPlayer::KilledBy(TakeDamageInfo & a_TDI)
 
 	// Puke out all the items
 	cItems Pickups;
-	m_Inventory.CopyToItems(Pickups);
-	m_Inventory.Clear();
+	// Drop items from inventory unless keepInventory is true
+	if (!m_World->GetGameRules()->GetKeepInventory())
+	{
+		m_Inventory.CopyToItems(Pickups);
+		m_Inventory.Clear();
+	}
 
 	if (GetName() == "Notch")
 	{
@@ -1205,6 +1210,8 @@ void cPlayer::Respawn(void)
 {
 	ASSERT(m_World != nullptr);
 
+	bool KeepInventory = m_World->GetGameRules()->GetKeepInventory();
+
 	m_Health = GetMaxHealth();
 	SetInvulnerableTicks(20);
 
@@ -1213,12 +1220,24 @@ void cPlayer::Respawn(void)
 	m_FoodSaturationLevel = 5.0;
 	m_FoodExhaustionLevel = 0.0;
 
-	// Reset Experience
-	m_CurrentXp = 0;
-	m_LifetimeTotalXp = 0;
-	// ToDo: send score to client? How?
+	if (!KeepInventory)
+	{
+		// Reset Experience
+		m_CurrentXp = 0;
+		m_LifetimeTotalXp = 0;
+		// ToDo: send score to client? How?
+	}
 
 	m_ClientHandle->SendRespawn(m_SpawnWorld->GetDimension(), true);
+
+	// Send inventory if gamerule is set
+	if (KeepInventory)
+	{
+		m_ClientHandle->SendWholeInventory(*m_CurrentWindow);
+		SendHealth();
+		SendExperience();
+		SendHotbarActiveSlot();
+	}
 
 	// Extinguish the fire:
 	StopBurning();

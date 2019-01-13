@@ -3,6 +3,7 @@
 
 #include "SnowGolem.h"
 #include "../World.h"
+#include "../GameRules.h"
 
 
 
@@ -39,7 +40,8 @@ void cSnowGolem::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 	{
 		TakeDamage(*this);
 	}
-	else
+	// Add snow if mobGriefing is set to true
+	else if (m_World->GetGameRules()->GetMobGriefing())
 	{
 		BLOCKTYPE BlockBelow = m_World->GetBlock(POSX_TOINT, POSY_TOINT - 1, POSZ_TOINT);
 		BLOCKTYPE Block = m_World->GetBlock(POSX_TOINT, POSY_TOINT, POSZ_TOINT);

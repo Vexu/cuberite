@@ -15,6 +15,7 @@
 #include "../FastRandom.h"
 #include "../NetherPortalScanner.h"
 #include "../BoundingBox.h"
+#include "../GameRules.h"
 
 
 
@@ -807,10 +808,14 @@ void cEntity::KilledBy(TakeDamageInfo & a_TDI)
 		cRoot::Get()->GetPluginManager()->CallHookKilled(*this, a_TDI, emptystring);
 	}
 
-	// Drop loot:
-	cItems Drops;
-	GetDrops(Drops, a_TDI.Attacker);
-	m_World->SpawnItemPickups(Drops, GetPosX(), GetPosY(), GetPosZ());
+	// Drop loot unless gamerules block it
+	if ((IsMob() && m_World->GetGameRules()->GetDoMobLoot()) || (!IsPlayer() && m_World->GetGameRules()->GetDoEntityDrops()))
+	{
+		// Drop loot:
+		cItems Drops;
+		GetDrops(Drops, a_TDI.Attacker);
+		m_World->SpawnItemPickups(Drops, GetPosX(), GetPosY(), GetPosZ());
+	}
 
 	m_World->BroadcastEntityStatus(*this, esGenericDead);
 }

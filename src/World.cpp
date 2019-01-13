@@ -11,6 +11,7 @@
 #include "DeadlockDetect.h"
 #include "LineBlockTracer.h"
 #include "UUID.h"
+#include "GameRules.h"
 
 // Serializers
 #include "WorldStorage/ScoreboardSerializer.h"
@@ -220,6 +221,9 @@ cWorld::cWorld(
 
 	cFile::CreateFolderRecursive(FILE_IO_PREFIX + m_DataPath);
 
+	// Load GameRules
+	m_GameRules = new cGameRules(*this, m_DataPath);
+
 	// Load the scoreboard
 	cScoreboardSerializer Serializer(m_DataPath, &m_Scoreboard);
 	Serializer.Load();
@@ -251,8 +255,8 @@ cWorld::cWorld(
 	}
 	m_UnusedDirtyChunksCap = static_cast<size_t>(UnusedDirtyChunksCap);
 
-	m_BroadcastDeathMessages = IniFile.GetValueSetB("Broadcasting", "BroadcastDeathMessages", true);
-	m_BroadcastAchievementMessages = IniFile.GetValueSetB("Broadcasting", "BroadcastAchievementMessages", true);
+	m_BroadcastDeathMessages = IniFile.GetValueSetB("Broadcasting", "BroadcastDeathMessages", GetGameRules()->GetShowDeathMessages());
+	m_BroadcastAchievementMessages = IniFile.GetValueSetB("Broadcasting", "BroadcastAchievementMessages", GetGameRules()->GetAnnounceAdvancements());
 
 	SetMaxViewDistance(IniFile.GetValueSetI("SpawnPosition", "MaxViewDistance", 12));
 
@@ -304,7 +308,7 @@ cWorld::cWorld(
 	m_MaxNetherPortalWidth        = IniFile.GetValueSetI("Mechanics",     "MaxNetherPortalWidth",        21);
 	m_MinNetherPortalHeight       = IniFile.GetValueSetI("Mechanics",     "MinNetherPortalHeight",       3);
 	m_MaxNetherPortalHeight       = IniFile.GetValueSetI("Mechanics",     "MaxNetherPortalHeight",       21);
-	m_VillagersShouldHarvestCrops = IniFile.GetValueSetB("Monsters",      "VillagersShouldHarvestCrops", true);
+	m_VillagersShouldHarvestCrops = IniFile.GetValueSetB("Monsters",      "VillagersShouldHarvestCrops", GetGameRules()->GetMobGriefing());
 	m_IsDaylightCycleEnabled      = IniFile.GetValueSetB("General",       "IsDaylightCycleEnabled",      true);
 	int GameMode                  = IniFile.GetValueSetI("General",       "Gamemode",                    static_cast<int>(m_GameMode));
 	int Weather                   = IniFile.GetValueSetI("General",       "Weather",                     static_cast<int>(m_Weather));
@@ -1118,16 +1122,19 @@ void cWorld::TickWeather(float a_Dt)
 	{
 		return;
 	}
-
-	if (m_WeatherInterval > 0)
+	// Change weather if doWeatherCycle is true
+	if (GetGameRules()->GetDoWeatherCycle())
 	{
-		// Not yet, wait for the weather period to end
-		m_WeatherInterval--;
-	}
-	else
-	{
-		// Change weather:
-		SetWeather(ChooseNewWeather());
+		if (m_WeatherInterval > 0)
+		{
+			// Not yet, wait for the weather period to end
+			m_WeatherInterval--;
+		}
+		else
+		{
+			// Change weather:
+			SetWeather(ChooseNewWeather());
+		}
 	}
 
 	if (m_Weather == eWeather_ThunderStorm)
@@ -1449,7 +1456,7 @@ void cWorld::DoExplosionAt(double a_ExplosionSize, double a_BlockX, double a_Blo
 
 	// TODO: Implement block hardiness
 	cVector3iArray BlocksAffected;
-	m_ChunkMap->DoExplosionAt(a_ExplosionSize, a_BlockX, a_BlockY, a_BlockZ, BlocksAffected);
+	m_ChunkMap->DoExplosionAt(a_ExplosionSize, a_BlockX, a_BlockY, a_BlockZ, BlocksAffected, a_Source);
 	BroadcastSoundEffect("entity.generic.explode", Vector3d(a_BlockX, a_BlockY, a_BlockZ), 1.0f, 0.6f);
 
 	{

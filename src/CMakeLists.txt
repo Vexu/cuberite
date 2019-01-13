@@ -74,6 +74,7 @@ SET (SRCS
 	WebAdmin.cpp
 	World.cpp
 	main.cpp
+	GameRules.cpp
 )
 
 SET (HDRS
@@ -157,6 +158,7 @@ SET (HDRS
 	WebAdmin.h
 	World.h
 	XMLParser.h
+	GameRules.h
 )
 
 file(WRITE "${CMAKE_BINARY_DIR}/include/Globals.h"

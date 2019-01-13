@@ -27,6 +27,7 @@
 
 #include "zlib/zlib.h"
 #include "json/json.h"
+#include "GameRules.h"
 
 
 
@@ -1198,7 +1199,7 @@ bool cChunkMap::ForEachEntityInBox(const cBoundingBox & a_Box, cEntityCallback a
 
 
 
-void cChunkMap::DoExplosionAt(double a_ExplosionSize, double a_BlockX, double a_BlockY, double a_BlockZ, cVector3iArray & a_BlocksAffected)
+void cChunkMap::DoExplosionAt(double a_ExplosionSize, double a_BlockX, double a_BlockY, double a_BlockZ, cVector3iArray & a_BlocksAffected, eExplosionSource a_Source)
 {
 	// Don't explode if outside of Y range (prevents the following test running into unallocated memory):
 	if (!cChunkDef::IsValidHeight(FloorC(a_BlockY)))
@@ -1210,6 +1211,12 @@ void cChunkMap::DoExplosionAt(double a_ExplosionSize, double a_BlockX, double a_
 
 	// Don't explode if the explosion center is inside a liquid block:
 	if (IsBlockLiquid(m_World->GetBlock(FloorC(a_BlockX), FloorC(a_BlockY), FloorC(a_BlockZ))))
+	{
+		ShouldDestroyBlocks = false;
+	}
+
+	// Don't explode if source is monster and doMobGriefing is set to false
+	if (!m_World->GetGameRules()->GetMobGriefing() && ((a_Source != esBed) && (a_Source != esOther) && (a_Source != esPlugin) && (a_Source != esPrimedTNT)))
 	{
 		ShouldDestroyBlocks = false;
 	}

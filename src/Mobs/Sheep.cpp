@@ -6,6 +6,7 @@
 #include "../World.h"
 #include "../EffectID.h"
 #include "../FastRandom.h"
+#include "../GameRules.h"
 
 
 
@@ -102,6 +103,12 @@ void cSheep::Tick(std::chrono::milliseconds a_Dt, cChunk & a_Chunk)
 	int PosZ = POSZ_TOINT;
 
 	if ((PosY <= 0) || (PosY >= cChunkDef::Height))
+	{
+		return;
+	}
+
+	// Don't eat grass if mobGriefing is false
+	if (!m_World->GetGameRules()->GetMobGriefing())
 	{
 		return;
 	}

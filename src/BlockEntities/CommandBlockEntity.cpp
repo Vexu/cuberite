@@ -12,6 +12,7 @@
 #include "../ChatColor.h"
 #include "../World.h"
 #include "../ClientHandle.h"
+#include "../GameRules.h"
 
 
 
@@ -173,6 +174,11 @@ void cCommandBlockEntity::Execute()
 
 		virtual void Out(const AString & a_Text)
 		{
+			// This should stop any output
+			if (!m_CmdBlock->GetWorld()->GetGameRules()->GetCommandBlockOutput())
+			{
+				return;
+			}
 			// Overwrite field
 			m_CmdBlock->SetLastOutput(cClientHandle::FormatChatPrefix(m_CmdBlock->GetWorld()->ShouldUseChatPrefixes(), "SUCCESS", cChatColor::Green, cChatColor::White) + a_Text);
 		}

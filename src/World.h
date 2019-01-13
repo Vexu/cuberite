@@ -51,6 +51,7 @@ class cCompositeChat;
 class cSetChunkData;
 class cDeadlockDetect;
 class cUUID;
+class cGameRules;
 
 typedef std::list< cPlayer * > cPlayerList;
 typedef std::list< std::pair< std::unique_ptr<cPlayer>, cWorld * > > cAwaitingPlayerList;
@@ -685,6 +686,8 @@ public:
 	bool ShouldBroadcastDeathMessages(void) const { return m_BroadcastDeathMessages; }
 	bool ShouldBroadcastAchievementMessages(void) const { return m_BroadcastAchievementMessages; }
 
+	void SetBroadcastDeathMessages(bool a_BroadcastDeathMessages) { m_BroadcastDeathMessages = a_BroadcastDeathMessages; }
+	void SetBroadcastAchievementMessages(bool a_BroadcastAchievementMessages) { m_BroadcastAchievementMessages = a_BroadcastAchievementMessages; }
 
 	AString GetLinkedNetherWorldName(void) const { return m_LinkedNetherWorldName; }
 	void SetLinkedNetherWorldName(const AString & a_Name) { m_LinkedNetherWorldName = a_Name; }
@@ -862,6 +865,12 @@ public:
 	This function allows nesting and task-concurrency (multiple separate tasks can request ticking and as long
 	as at least one requests is active the chunk will be ticked). */
 	void SetChunkAlwaysTicked(int a_ChunkX, int a_ChunkZ, bool a_AlwaysTicked = true);  // tolua_export
+
+	/** Sets whether villagers harvest crops */
+	void SetVillagersShouldHarvestCrops(bool a_VillagersShouldHarvestCrops) { m_VillagersShouldHarvestCrops = a_VillagersShouldHarvestCrops; }
+
+	/** Get GameRules */
+	cGameRules * GetGameRules(void) { return m_GameRules; }
 
 private:
 
@@ -1043,6 +1052,9 @@ private:
 	cChunkSender     m_ChunkSender;
 	cLightingThread  m_Lighting;
 	cTickThread      m_TickThread;
+
+	/** GameRules for this world */
+	cGameRules * m_GameRules;
 
 	/** Guards the m_Tasks */
 	cCriticalSection m_CSTasks;

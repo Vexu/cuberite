@@ -139,6 +139,7 @@ set(BINDING_DEPENDENCIES
 	../Vector3.h
 	../WebAdmin.h
 	../World.h
+	../GameRules.h
 )
 
 if (NOT MSVC)
